@@ -66,6 +66,7 @@ export default function ScraperWizard({ mostrarEncabezado = true, onSaved }) {
   const [error, setError] = useState('');
   const [errorPrueba, setErrorPrueba] = useState('');
   const [htmlExtraido, setHtmlExtraido] = useState('');
+  const [htmlPrevisualizacion, setHtmlPrevisualizacion] = useState('');
   const [metadatos, setMetadatos] = useState(null);
   const [formulario, setFormulario] = useState(crearFormularioInicial);
 
@@ -104,6 +105,7 @@ export default function ScraperWizard({ mostrarEncabezado = true, onSaved }) {
         selectores: resultado.selectores || actual.selectores,
       }));
       setHtmlExtraido(resultado.html || '');
+      setHtmlPrevisualizacion(resultado.htmlPreview || '');
       setMetadatos(resultado.metadatos || null);
       setProgresoCarga(100);
       setTextoEstado('Página analizada correctamente.');
@@ -167,6 +169,7 @@ export default function ScraperWizard({ mostrarEncabezado = true, onSaved }) {
       setPasoActual(1);
       setFormulario(crearFormularioInicial());
       setHtmlExtraido('');
+      setHtmlPrevisualizacion('');
       setMetadatos(null);
       onSaved?.();
     } catch (requestError) {
@@ -181,6 +184,7 @@ export default function ScraperWizard({ mostrarEncabezado = true, onSaved }) {
     if (name === 'enlace' && value !== formulario.enlace) {
       setFormulario({ ...crearFormularioInicial(), enlace: value });
       setHtmlExtraido('');
+      setHtmlPrevisualizacion('');
       setMetadatos(null);
       setError('');
       return;
@@ -191,6 +195,7 @@ export default function ScraperWizard({ mostrarEncabezado = true, onSaved }) {
   const limpiarEnlace = () => {
     setFormulario(crearFormularioInicial());
     setHtmlExtraido('');
+    setHtmlPrevisualizacion('');
     setMetadatos(null);
     setError('');
   };
@@ -260,6 +265,7 @@ export default function ScraperWizard({ mostrarEncabezado = true, onSaved }) {
                 formulario={formulario}
                 setFormulario={setFormulario}
                 htmlExtraido={htmlExtraido}
+                htmlPrevisualizacion={htmlPrevisualizacion}
                 metadatos={metadatos}
                 manejarProbarSelectores={manejarProbarSelectores}
                 probandoSelectores={probandoSelectores}
