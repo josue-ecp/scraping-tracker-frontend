@@ -10,6 +10,17 @@ const FIELD_LABELS = {
 };
 const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 const SAFE_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_-]*$/;
+const IDENTIFYING_ATTRIBUTES = [
+  'data-testid',
+  'data-test',
+  'data-qa',
+  'data-cy',
+  'itemprop',
+  'name',
+  'aria-label',
+  'title',
+];
+const SEMANTIC_CLASS = /price|precio|title|titulo|name|nombre|product|producto|description|descripcion|image|imagen|sku|rating|stock|offer|discount|brand|marca/i;
 
 function crearSelectorCss(elemento, documento) {
   if (elemento.id && SAFE_IDENTIFIER.test(elemento.id)) {
@@ -17,10 +28,57 @@ function crearSelectorCss(elemento, documento) {
     if (documento.querySelectorAll(selectorId).length === 1) return selectorId;
   }
 
-  const clases = Array.from(elemento.classList).filter((clase) => SAFE_IDENTIFIER.test(clase));
-  if (clases.length > 0) {
-    const selectorClase = `${elemento.localName}${clases.map((clase) => `.${clase}`).join('')}`;
-    if (documento.querySelectorAll(selectorClase).length === 1) return selectorClase;
+  const esUnico = (selector) => (
+    selector.length <= 256 && documento.querySelectorAll(selector).length === 1
+  );
+  const clases = Array.from(elemento.classList)
+    .filter((clase) => SAFE_IDENTIFIER.test(clase))
+    .sort((a, b) => Number(SEMANTIC_CLASS.test(b)) - Number(SEMANTIC_CLASS.test(a)));
+
+  for (const clase of clases) {
+    if (esUnico(`.${clase}`)) return `.${clase}`;
+  }
+
+  const atributos = Array.from(elemento.attributes)
+    .filter(({ name, value }) => (
+      (IDENTIFYING_ATTRIBUTES.includes(name) || name.startsWith('data-'))
+      && /^[a-zA-Z_:][a-zA-Z0-9_.:-]*$/.test(name)
+      && value.trim() !== ''
+      && value.trim() === value
+      && !/["\\\]\r\n]/.test(value)
+    ))
+    .sort((a, b) => {
+      const prioridadA = IDENTIFYING_ATTRIBUTES.indexOf(a.name);
+      const prioridadB = IDENTIFYING_ATTRIBUTES.indexOf(b.name);
+      return (prioridadA === -1 ? IDENTIFYING_ATTRIBUTES.length : prioridadA)
+        - (prioridadB === -1 ? IDENTIFYING_ATTRIBUTES.length : prioridadB);
+    });
+
+  for (const { name, value } of atributos) {
+    const selectorAtributo = `[${name}="${value}"]`;
+    if (esUnico(selectorAtributo)) return selectorAtributo;
+    if (esUnico(`${elemento.localName}${selectorAtributo}`)) {
+      return `${elemento.localName}${selectorAtributo}`;
+    }
+  }
+
+  for (const clase of clases) {
+    if (esUnico(`${elemento.localName}.${clase}`)) return `${elemento.localName}.${clase}`;
+  }
+
+  const clasesParaCombinar = clases.slice(0, 10);
+  for (let i = 0; i < clasesParaCombinar.length; i++) {
+    for (let j = i + 1; j < clasesParaCombinar.length; j++) {
+      const selectorClase = `.${clasesParaCombinar[i]}.${clasesParaCombinar[j]}`;
+      if (esUnico(selectorClase)) return selectorClase;
+      const selectorConEtiqueta = `${elemento.localName}${selectorClase}`;
+      if (esUnico(selectorConEtiqueta)) return selectorConEtiqueta;
+    }
+  }
+
+  if (clases.length > 1) {
+    const selectorClases = `.${clases.join('.')}`;
+    if (esUnico(selectorClases)) return selectorClases;
   }
 
   const segmentos = [];
@@ -198,8 +256,8 @@ export default function StepHtmlInspector({
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 md:items-start">
-        <section className="min-w-0 space-y-4" aria-label="Configuración de campos y selectores">
+      <div className="flex flex-col gap-5 md:flex-row md:items-start">
+        <section className="w-full min-w-0 space-y-4 md:w-1/2" aria-label="Configuración de campos y selectores">
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-800">
             Cambia libremente la etiqueta de cada dato. Selecciona un campo aquí y haz clic en su elemento dentro de la vista previa.
           </div>
@@ -230,7 +288,7 @@ export default function StepHtmlInspector({
                     aria-label={`Etiqueta para ${FIELD_LABELS[campo]}`}
                   />
                 </label>
-                <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+                <div className="grid gap-3 lg:grid-cols-[2fr_1fr]">
                   <label className="block text-xs font-semibold text-gray-600">
                     Selector CSS
                     <input
@@ -288,7 +346,7 @@ export default function StepHtmlInspector({
           </button>
         </section>
 
-        <section className="min-w-0 space-y-3 md:sticky md:top-4" aria-label="Vista previa interactiva">
+        <section className="w-full min-w-0 space-y-3 md:w-1/2" aria-label="Vista previa interactiva">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Vista previa segura</span>
             <span className="rounded bg-gray-200 px-2 py-0.5 font-mono text-xs text-gray-700">
