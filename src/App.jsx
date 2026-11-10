@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Activity, ChartNoAxesCombined, LogOut, Menu, Plus, ScanSearch, X } from 'lucide-react';
+import { Activity, ChartNoAxesCombined, Code2, LogOut, Menu, Plus, ScanSearch, X } from 'lucide-react';
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import AuthLayout from './components/auth/AuthLayout';
 import Login from './components/auth/Login';
@@ -7,6 +7,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 import Register from './components/auth/Register';
 import DashboardProductos from './components/dashboard/DashboardProductos';
+import ApiDocs from './components/integraciones/ApiDocs';
 import ScraperWizard from './components/wizard/ScraperWizard';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './hooks/useAuth';
@@ -79,6 +80,14 @@ function BarraNavegacion() {
               <ScanSearch className="hidden h-4 w-4 sm:block" />
               <span>Nuevo rastreo</span>
             </Link>
+            <Link
+              to="/integraciones"
+              onClick={() => setMenuAbierto(false)}
+              className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              <Code2 className="h-4 w-4" />
+              <span>Mi API</span>
+            </Link>
             <span className="max-w-full truncate px-3 py-2 text-sm font-medium text-slate-600 md:max-w-40 md:border-l md:border-slate-200 md:py-0" title={usuario?.email}>
               {usuario?.name}
             </span>
@@ -129,6 +138,7 @@ function RutasAplicacion() {
         <Route element={<BarraNavegacion />}>
           <Route index element={<DashboardPage />} />
           <Route path="/wizard" element={<WizardPage />} />
+          <Route path="/integraciones" element={<ApiDocs />} />
         </Route>
       </Route>
 
